@@ -484,6 +484,44 @@ def create_bench_env():
         error("Bench failed to start. Check: docker compose logs")
 
 
+def _get_traefik_domains_from_yaml(yaml_path: Path) -> list:
+    """Return domains currently listed in the first Traefik Host() rule found in the YAML."""
+    if not yaml_path.exists():
+        return []
+    m = re.search(
+        r'traefik\.http\.routers\.[^.]+\.rule:\s*["\']?Host\(([^)]+)\)',
+        yaml_path.read_text(),
+    )
+    return re.findall(r'`([^`]+)`', m.group(1)) if m else []
+
+
+def _update_traefik_host_rule(yaml_path: Path, new_domain: str) -> bool:
+    """Add *new_domain* to every Traefik Host() rule in yaml_path (http + https routers).
+    Returns True if the file was changed, False if domain already present or file missing."""
+    if not yaml_path.exists():
+        return False
+    text = yaml_path.read_text()
+    changed = False
+
+    def _add_if_missing(m):
+        nonlocal changed
+        existing = re.findall(r'`([^`]+)`', m.group(2))
+        if new_domain in existing:
+            return m.group(0)
+        existing.append(new_domain)
+        changed = True
+        return m.group(1) + ",".join(f"`{d}`" for d in existing) + m.group(3)
+
+    updated = re.sub(
+        r'(traefik\.http\.routers\.[^.]+\.rule:\s*["\']?Host\()([^)]+)(\)["\']?)',
+        _add_if_missing,
+        text,
+    )
+    if changed:
+        yaml_path.write_text(updated)
+    return changed
+
+
 def create_bench_site():
     banner("Create a New Frappe Site")
     if not require_docker():
@@ -493,8 +531,19 @@ def create_bench_site():
     if projects:
         info("Known projects: " + ", ".join(projects))
 
-    project = ask("Project name", "erpnext-one")
-    site    = ask("Site domain (must match your SITES setting)")
+    project   = ask("Project name", "erpnext-one")
+    yaml_path = GITOPS / f"{project}.yaml"
+
+    # Show domains already registered in this project's Traefik routing
+    existing_domains = _get_traefik_domains_from_yaml(yaml_path)
+    if existing_domains:
+        print()
+        print(f"  {bold('Existing site domain(s) in this project:')}")
+        for d in existing_domains:
+            print(f"  {dim('  •')} {cyan(d)}")
+        print()
+
+    site = ask("Site domain (must match your SITES setting)")
     if not site:
         error("Site name cannot be empty.")
         return
@@ -519,6 +568,17 @@ def create_bench_site():
     run(f"docker compose --project-name {project} exec backend bench use {site}")
     run(f"docker compose --project-name {project} exec backend bench migrate")
     run(f"docker compose --project-name {project} exec backend bench clear-cache")
+
+    # Update Traefik Host rule in the project YAML to include the new domain
+    if yaml_path.exists():
+        if _update_traefik_host_rule(yaml_path, site):
+            success(f"Traefik routing updated — '{site}' added to Host rule in {yaml_path.name}")
+            info("Re-apply the compose file for routing to take effect:")
+            info(f"  docker compose --project-name {project} -f {yaml_path} up -d")
+        else:
+            info(f"Traefik Host rule already includes '{site}' — no update needed.")
+    else:
+        warn(f"No YAML found at {yaml_path} — Traefik routing not updated.")
 
     success("Site is ready!")
     print(f"\n  {bold('URL:')}   https://{site}/app")
@@ -1301,7 +1361,7 @@ def drop_site():
     if not confirm("Are you absolutely sure?", default=False):
         info("Cancelled.")
         return
-    if run(f"docker compose --project-name {project} exec backend bench drop-site --db-root-password {db_root_pass} --archived-sites {site}"):
+    if run(f"docker compose --project-name {project} exec backend bench drop-site --db-root-password {db_root_pass} {site}"):
         success(f"Site '{site}' dropped.")
     else:
         error("Drop failed. The site may still exist.")
