@@ -156,6 +156,7 @@ Option 30 supports AWS S3, MinIO, Backblaze B2, and any S3-compatible endpoint. 
 - **Linux** — Docker commands run with `sudo` where required.
 - **macOS** — Docker Desktop runs rootless; `sudo` is omitted automatically.
 
+
 ## License
 
 MIT
