@@ -436,7 +436,7 @@ def create_bench_env():
     ssl = confirm("Enable HTTPS with Let's Encrypt?", default=True)
 
     use_custom = confirm("Use a custom Docker image?", default=False)
-    custom_image = ask("Custom image (e.g. tridotstech/frappe:v15)", "") if use_custom else ""
+    custom_image = ask("Custom image (e.g. sankarprakashm/frappe:v15)", "") if use_custom else ""
 
     # Build env file from example.env using regex substitution
     text = example_env.read_text()
@@ -908,7 +908,7 @@ def local_deploy():
         ln.strip()
         for ln in run_capture(
             "docker images --format '{{.Repository}}:{{.Tag}}'"
-            " | grep -iE 'frappe|erpnext|hrms|tridots'"
+            " | grep -iE 'frappe|erpnext|hrms|sankarprakashm'"
         ).splitlines()
         if ln.strip()
     ]
@@ -928,7 +928,7 @@ def local_deploy():
             new_image = ask("Image name:tag", current_image)
     else:
         warn("No local Frappe images found. You can still enter one (it will be pulled).")
-        new_image = ask("Image name:tag (e.g. tridotstech/frappe:v15)", current_image)
+        new_image = ask("Image name:tag (e.g. sankarprakashm/frappe:v15)", current_image)
 
     if not new_image:
         error("Image name cannot be empty.")
@@ -1621,7 +1621,7 @@ def view_images():
         rows   = run_capture(
             "docker images --format"
             " '{{.Repository}}\\t{{.Tag}}\\t{{.ID}}\\t{{.Size}}\\t{{.CreatedSince}}'"
-            " | grep -iE 'frappe|erpnext|hrms|tridots'"
+            " | grep -iE 'frappe|erpnext|hrms|sankarprakashm'"
         )
         if header:
             print(f"\n  {bold(header)}")
@@ -1724,7 +1724,7 @@ def create_image():
 
     # ── 1. Image name & tag ───────────────────────────────────────────────────
     print()
-    image_name = ask("Image name", "tridotstech/frappe")
+    image_name = ask("Image name", "sankarprakashm/frappe")
     image_tag  = ask("Image tag",  "v15.0.0")
     full_image = f"{image_name}:{image_tag}"
 
@@ -1886,7 +1886,7 @@ def update_image():
     # Show existing local frappe images to help the user pick
     existing = run_capture(
         "docker images --format '{{.Repository}}:{{.Tag}}'"
-        " | grep -iE 'frappe|erpnext|hrms|tridots'"
+        " | grep -iE 'frappe|erpnext|hrms|sankarprakashm'"
     )
     if existing:
         info("Existing local Frappe images:")
