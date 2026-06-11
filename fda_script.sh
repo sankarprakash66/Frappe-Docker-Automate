@@ -305,7 +305,7 @@ local_deploy() {
   local local_imgs=()
   while IFS= read -r line; do
     [[ -n "$line" ]] && local_imgs+=("$line")
-  done < <(docker images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep -iE 'frappe|erpnext|hrms|tridots' || true)
+  done < <(docker images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep -iE 'frappe|erpnext|hrms|sankarprakashm' || true)
 
   local new_image=""
   if [[ ${#local_imgs[@]} -gt 0 ]]; then
@@ -325,7 +325,7 @@ local_deploy() {
     fi
   else
     warn "No local Frappe images found."
-    new_image=$(ask "Image name:tag (e.g. tridotstech/frappe:v15)" "$current_image")
+    new_image=$(ask "Image name:tag (e.g. sankarprakashm/frappe:v15)" "$current_image")
   fi
 
   [[ -z "$new_image" ]] && error "Image name cannot be empty." && return
@@ -706,7 +706,7 @@ create_bench_env() {
   confirm "Enable HTTPS with Let's Encrypt?" true && ssl=true || true
   local custom_image=""
   if confirm "Use a custom Docker image?" false; then
-    custom_image=$(ask "Custom image (e.g. tridotstech/frappe:v15)" "")
+    custom_image=$(ask "Custom image (e.g. sankarprakashm/frappe:v15)" "")
   fi
 
   local env_path="$GITOPS/${project}.env"
@@ -958,7 +958,7 @@ view_images() {
        docker images "$term" --format "$fmt" ;;
     *) printf "\n  ${BOLD}REPOSITORY\tTAG\tID\tSIZE\tCREATED${RESET}\n"
        docker images --format '{{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.Size}}\t{{.CreatedSince}}' \
-         | grep -iE 'frappe|erpnext|hrms|tridots' || warn "No frappe/erpnext images found locally." ;;
+         | grep -iE 'frappe|erpnext|hrms|sankarprakashm' || warn "No frappe/erpnext images found locally." ;;
   esac
   printf "\n"
   if confirm "Remove an image?" false; then
@@ -1030,7 +1030,7 @@ create_image() {
   require_docker || return
   require_repo   || return
 
-  local image_name; image_name=$(ask "Image name" "tridotstech/frappe")
+  local image_name; image_name=$(ask "Image name" "sankarprakashm/frappe")
   local image_tag;  image_tag=$(ask "Image tag" "v15.0.0")
   local full_image="${image_name}:${image_tag}"
 
@@ -1144,7 +1144,7 @@ update_image() {
     success "Updated apps.json → $apps_json_path"
   fi
 
-  local existing; existing=$(docker images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep -iE 'frappe|erpnext|hrms|tridots' || true)
+  local existing; existing=$(docker images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep -iE 'frappe|erpnext|hrms|sankarprakashm' || true)
   [[ -n "$existing" ]] && info "Existing local Frappe images:" && echo "$existing" | while IFS= read -r l; do printf "      ${CYAN}%s${RESET}\n" "$l"; done
 
   local old_image; old_image=$(ask "Image name:tag to rebuild")
