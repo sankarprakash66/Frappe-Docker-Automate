@@ -436,7 +436,39 @@ def create_bench_env():
     ssl = confirm("Enable HTTPS with Let's Encrypt?", default=True)
 
     use_custom = confirm("Use a custom Docker image?", default=False)
-    custom_image = ask("Custom image (e.g. sankarprakashm/frappe:v15)", "") if use_custom else ""
+    custom_image = ""
+    if use_custom:
+        print()
+        print(f"  {bold('Image source:')}")
+        print(f"  {bold('1.')} Choose from local images")
+        print(f"  {bold('2.')} Enter a registry image manually")
+        print()
+        img_choice = ask("Choose [1/2]", "1")
+
+        if img_choice == "1":
+            local_imgs = [
+                ln.strip()
+                for ln in run_capture(
+                    "docker images --format '{{.Repository}}:{{.Tag}}'"
+                ).splitlines()
+                if ln.strip()
+            ]
+            if local_imgs:
+                print(f"  {bold('Local images found on this machine:')}")
+                for i, img in enumerate(local_imgs, 1):
+                    print(f"  {bold(str(i))}. {cyan(img)}")
+                print(f"  {bold(str(len(local_imgs) + 1))}. Enter a different image manually")
+                print()
+                choice = ask(f"Choose [1-{len(local_imgs) + 1}]", "1")
+                if choice.isdigit() and 1 <= int(choice) <= len(local_imgs):
+                    custom_image = local_imgs[int(choice) - 1]
+                else:
+                    custom_image = ask("Custom image (e.g. sankarprakashm/frappe:v15)")
+            else:
+                warn("No local Frappe images found.")
+                custom_image = ask("Custom image (e.g. sankarprakashm/frappe:v15)")
+        else:
+            custom_image = ask("Custom image (e.g. sankarprakashm/frappe:v15)")
 
     # Build env file from example.env using regex substitution
     text = example_env.read_text()
@@ -469,12 +501,18 @@ def create_bench_env():
 
     if custom_image:
         info(f"Patching image → {custom_image}")
-        patched = re.sub(
-            r"^(\s+)image:.*",
-            lambda m: f"{m.group(1)}image: {custom_image}",
-            yaml_path.read_text(),
-            flags=re.MULTILINE,
-        )
+        def _swap_image(m):
+            indent = m.group(1)
+            img = m.group(2)
+            # Skip replacing infrastructure images
+            if any(x in img for x in ("mariadb", "redis", "postgres")):
+                return m.group(0)
+            # Replace image and remove any existing pull_policy line for this service
+            return f"{indent}image: {custom_image}"
+
+        text = yaml_path.read_text()
+        # Matches image line and an optional pull_policy line following it
+        patched = re.sub(r"^(\s+)image:\s+(\S+)(?:\n\s+pull_policy:\s+\S+)?", _swap_image, text, flags=re.MULTILINE)
         yaml_path.write_text(patched)
 
     if run(f"docker compose --project-name {project} -f {yaml_path} up -d"):
