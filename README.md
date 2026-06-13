@@ -14,7 +14,7 @@ Tested on **Ubuntu 22.04+** and **macOS 13+**.
 ## Quick Start
 
 ```bash
-git clone https://github.com/sankarprakash66/frappe_docker_automate
+git clone https://github.com/sankarprakash66/frappe-docker-automate
 cd frappe_docker_automate
 python3 fda_script.py
 ```

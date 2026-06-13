@@ -908,7 +908,7 @@ def local_deploy():
         ln.strip()
         for ln in run_capture(
             "docker images --format '{{.Repository}}:{{.Tag}}'"
-            " | grep -iE 'frappe|erpnext|hrms|tridots'"
+            " | grep -iE 'frappe|erpnext|hrms|sankarprakashm'"
         ).splitlines()
         if ln.strip()
     ]
@@ -1621,7 +1621,7 @@ def view_images():
         rows   = run_capture(
             "docker images --format"
             " '{{.Repository}}\\t{{.Tag}}\\t{{.ID}}\\t{{.Size}}\\t{{.CreatedSince}}'"
-            " | grep -iE 'frappe|erpnext|hrms|tridots'"
+            " | grep -iE 'frappe|erpnext|hrms|sankarprakashm'"
         )
         if header:
             print(f"\n  {bold(header)}")
@@ -1886,7 +1886,7 @@ def update_image():
     # Show existing local frappe images to help the user pick
     existing = run_capture(
         "docker images --format '{{.Repository}}:{{.Tag}}'"
-        " | grep -iE 'frappe|erpnext|hrms|tridots'"
+        " | grep -iE 'frappe|erpnext|hrms|sankarprakashm'"
     )
     if existing:
         info("Existing local Frappe images:")
