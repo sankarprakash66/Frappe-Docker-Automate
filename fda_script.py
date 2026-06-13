@@ -436,7 +436,7 @@ def create_bench_env():
     ssl = confirm("Enable HTTPS with Let's Encrypt?", default=True)
 
     use_custom = confirm("Use a custom Docker image?", default=False)
-    custom_image = ask("Custom image (e.g. tridotstech/frappe:v15)", "") if use_custom else ""
+    custom_image = ask("Custom image (e.g. sankarprakashm/frappe:v15)", "") if use_custom else ""
 
     # Build env file from example.env using regex substitution
     text = example_env.read_text()
@@ -928,7 +928,7 @@ def local_deploy():
             new_image = ask("Image name:tag", current_image)
     else:
         warn("No local Frappe images found. You can still enter one (it will be pulled).")
-        new_image = ask("Image name:tag (e.g. tridotstech/frappe:v15)", current_image)
+        new_image = ask("Image name:tag (e.g. sankarprakashm/frappe:v15)", current_image)
 
     if not new_image:
         error("Image name cannot be empty.")
@@ -1724,7 +1724,7 @@ def create_image():
 
     # ── 1. Image name & tag ───────────────────────────────────────────────────
     print()
-    image_name = ask("Image name", "tridotstech/frappe")
+    image_name = ask("Image name", "sankarprakashm/frappe")
     image_tag  = ask("Image tag",  "v15.0.0")
     full_image = f"{image_name}:{image_tag}"
 
@@ -2078,7 +2078,7 @@ def _print_status():
         state = green("✔  running") if _container_running("traefik") else red("✖  stopped")
         print(f"  {bold('Traefik'):<{W}} {state}   {dim(str(traefik_env))}")
     else:
-        print(f"  {bold('Traefik'):<{W}} {dim('─  not configured  (run option 3)')}")
+        print(f"  {bold('Traefik'):<{W}} {dim('─  not configured  (run option 7)')}")
 
     # MariaDB
     mariadb_env = GITOPS / "mariadb.env"
@@ -2086,7 +2086,7 @@ def _print_status():
         state = green("✔  running") if _container_running("mariadb") else red("✖  stopped")
         print(f"  {bold('MariaDB'):<{W}} {state}   {dim(str(mariadb_env))}")
     else:
-        print(f"  {bold('MariaDB'):<{W}} {dim('─  not configured  (run option 4)')}")
+        print(f"  {bold('MariaDB'):<{W}} {dim('─  not configured  (run option 8)')}")
 
     # PostgreSQL
     postgres_env = GITOPS / "postgres.env"
@@ -2094,7 +2094,7 @@ def _print_status():
         state = green("✔  running") if _container_running("postgres") else red("✖  stopped")
         print(f"  {bold('PostgreSQL'):<{W}} {state}   {dim(str(postgres_env))}")
     else:
-        print(f"  {bold('PostgreSQL'):<{W}} {dim('─  not configured  (run option 5)')}")
+        print(f"  {bold('PostgreSQL'):<{W}} {dim('─  not configured  (run option 9)')}")
 
     print(f"  {dim('─' * 58)}")
 
